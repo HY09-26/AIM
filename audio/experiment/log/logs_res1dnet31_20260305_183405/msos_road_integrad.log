@@ -1,0 +1,68 @@
+[DATA] dataset=msos X_wave=(500, 160000) y=(500,)
+[MODEL] loading ckpt: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/checkpoints/msos/res1dnet31/best_model.pth
+[EXPL] loading: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/expl_msos/res1dnet31/integrad.npy
+[EXPL] saliency: (500, 160000)
+Traceback (most recent call last):
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform_interval.py", line 622, in <module>
+    main()
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform_interval.py", line 579, in main
+    morf = run_morf_lerf_interval(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform_interval.py", line 404, in run_morf_lerf_interval
+    acc = eval_epoch(model, loader, model_name=model_name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform_interval.py", line 157, in eval_epoch
+    out = model(adapt_wave_input(x, model_name))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/model/res1dnet31.py", line 211, in forward
+    x = self.resnet(x)   # (B, 2048, T')
+        ^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/model/res1dnet31.py", line 148, in forward
+    x = self.layer1(x)
+        ^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/model/res1dnet31.py", line 67, in forward
+    out = self.bn1(out)
+          ^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/batchnorm.py", line 193, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/functional.py", line 2813, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 500.00 MiB. GPU 0 has a total capacity of 23.64 GiB of which 387.19 MiB is free. Process 3936577 has 940.00 MiB memory in use. Process 3972420 has 2.76 GiB memory in use. Process 3972643 has 15.07 GiB memory in use. Process 3974014 has 2.76 GiB memory in use. Including non-PyTorch memory, this process has 1.71 GiB memory in use. Of the allocated memory 1.31 GiB is allocated by PyTorch, and 18.92 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

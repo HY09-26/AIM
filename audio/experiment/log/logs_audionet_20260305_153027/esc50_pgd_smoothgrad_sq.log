@@ -1,0 +1,16 @@
+[PGD] Using default eps for (audionet x esc50) = 0.07
+[DATA] dataset=esc50 X_wave=(400, 160000) y=(400,)
+[MODEL] loading ckpt: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/checkpoints/esc50/audionet/fold_1/best_model.pth
+[EXPL] loading: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/expl_esc50/audionet/fold_1/smoothgrad_sq.npy
+[EXPL] saliency: (400, 160000)
+[ORDER] Loading cached orders from /mnt/left/home/2025/tony/hsinyuan/AIM_audio/morf_lerf/_cache/esc50/audionet/orders/smoothgrad_sq_desc.npy
+[PGD] Loading cached PGD from /mnt/left/home/2025/tony/hsinyuan/AIM_audio/morf_lerf/_cache/esc50/audionet/pgd/fold_1/pgd_eps0.07_steps20.npy
+Traceback (most recent call last):
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform.py", line 723, in <module>
+    main()
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform.py", line 656, in main
+    X_adv = np.load(pgd_path)
+            ^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/numpy/lib/_npyio_impl.py", line 460, in load
+    raise EOFError("No data left in file")
+EOFError: No data left in file

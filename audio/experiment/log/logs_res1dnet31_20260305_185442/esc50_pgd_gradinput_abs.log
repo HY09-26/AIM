@@ -1,0 +1,25 @@
+[PGD] Using default eps for (res1dnet31 x esc50) = 0.02
+[DATA] dataset=esc50 X_wave=(400, 160000) y=(400,)
+Traceback (most recent call last):
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform.py", line 723, in <module>
+    main()
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform.py", line 611, in main
+    model = Res1dNet31(num_classes=args.num_classes).to(device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1371, in to
+    return self._apply(convert)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 930, in _apply
+    module._apply(fn)
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 957, in _apply
+    param_applied = fn(param)
+                    ^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1357, in convert
+    return t.to(
+           ^^^^^
+torch.AcceleratorError: CUDA error: out of memory
+Search for `cudaErrorMemoryAllocation' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+

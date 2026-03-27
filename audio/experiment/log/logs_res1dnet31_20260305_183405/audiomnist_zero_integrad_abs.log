@@ -1,0 +1,47 @@
+[DATA] dataset=audiomnist X_wave=(6000, 8000) y=(6000,)
+[MODEL] loading ckpt: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/checkpoints/audiomnist/res1dnet31/best_model.pth
+[EXPL] loading: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/expl_audiomnist/res1dnet31/integrad_abs.npy
+[EXPL] saliency: (6000, 8000)
+[MORF-INTERVAL] step 00/20 | masked=  0.0% | L=    0/8000 | acc=0.9807
+[MORF-INTERVAL] step 01/20 | masked=  5.0% | L=  400/8000 | acc=0.9323
+[MORF-INTERVAL] step 02/20 | masked= 10.0% | L=  800/8000 | acc=0.8240
+[MORF-INTERVAL] step 03/20 | masked= 15.0% | L= 1200/8000 | acc=0.7177
+[MORF-INTERVAL] step 04/20 | masked= 20.0% | L= 1600/8000 | acc=0.6113
+[MORF-INTERVAL] step 05/20 | masked= 25.0% | L= 2000/8000 | acc=0.4445
+[MORF-INTERVAL] step 06/20 | masked= 30.0% | L= 2400/8000 | acc=0.3233
+[MORF-INTERVAL] step 07/20 | masked= 35.0% | L= 2800/8000 | acc=0.2270
+[MORF-INTERVAL] step 08/20 | masked= 40.0% | L= 3200/8000 | acc=0.1720
+[MORF-INTERVAL] step 09/20 | masked= 45.0% | L= 3600/8000 | acc=0.1438
+[MORF-INTERVAL] step 10/20 | masked= 50.0% | L= 4000/8000 | acc=0.1207
+[MORF-INTERVAL] step 11/20 | masked= 55.0% | L= 4400/8000 | acc=0.1110
+[MORF-INTERVAL] step 12/20 | masked= 60.0% | L= 4800/8000 | acc=0.1080
+[MORF-INTERVAL] step 13/20 | masked= 65.0% | L= 5200/8000 | acc=0.1033
+[MORF-INTERVAL] step 14/20 | masked= 70.0% | L= 5600/8000 | acc=0.1017
+[MORF-INTERVAL] step 15/20 | masked= 75.0% | L= 6000/8000 | acc=0.1002
+[MORF-INTERVAL] step 16/20 | masked= 80.0% | L= 6400/8000 | acc=0.1000
+[MORF-INTERVAL] step 17/20 | masked= 85.0% | L= 6800/8000 | acc=0.1000
+[MORF-INTERVAL] step 18/20 | masked= 90.0% | L= 7200/8000 | acc=0.1000
+[MORF-INTERVAL] step 19/20 | masked= 95.0% | L= 7600/8000 | acc=0.1000
+[MORF-INTERVAL] step 20/20 | masked=100.0% | L= 8000/8000 | acc=0.1000
+[LERF-INTERVAL] step 00/20 | masked=  0.0% | L=    0/8000 | acc=0.9807
+[LERF-INTERVAL] step 01/20 | masked=  5.0% | L=  400/8000 | acc=0.9805
+[LERF-INTERVAL] step 02/20 | masked= 10.0% | L=  800/8000 | acc=0.9805
+[LERF-INTERVAL] step 03/20 | masked= 15.0% | L= 1200/8000 | acc=0.9800
+[LERF-INTERVAL] step 04/20 | masked= 20.0% | L= 1600/8000 | acc=0.9797
+[LERF-INTERVAL] step 05/20 | masked= 25.0% | L= 2000/8000 | acc=0.9793
+[LERF-INTERVAL] step 06/20 | masked= 30.0% | L= 2400/8000 | acc=0.9760
+[LERF-INTERVAL] step 07/20 | masked= 35.0% | L= 2800/8000 | acc=0.9665
+[LERF-INTERVAL] step 08/20 | masked= 40.0% | L= 3200/8000 | acc=0.9385
+[LERF-INTERVAL] step 09/20 | masked= 45.0% | L= 3600/8000 | acc=0.9010
+[LERF-INTERVAL] step 10/20 | masked= 50.0% | L= 4000/8000 | acc=0.8462
+[LERF-INTERVAL] step 11/20 | masked= 55.0% | L= 4400/8000 | acc=0.7680
+[LERF-INTERVAL] step 12/20 | masked= 60.0% | L= 4800/8000 | acc=0.6602
+[LERF-INTERVAL] step 13/20 | masked= 65.0% | L= 5200/8000 | acc=0.5093
+[LERF-INTERVAL] step 14/20 | masked= 70.0% | L= 5600/8000 | acc=0.3690
+[LERF-INTERVAL] step 15/20 | masked= 75.0% | L= 6000/8000 | acc=0.2523
+[LERF-INTERVAL] step 16/20 | masked= 80.0% | L= 6400/8000 | acc=0.1733
+[LERF-INTERVAL] step 17/20 | masked= 85.0% | L= 6800/8000 | acc=0.1203
+[LERF-INTERVAL] step 18/20 | masked= 90.0% | L= 7200/8000 | acc=0.1028
+[LERF-INTERVAL] step 19/20 | masked= 95.0% | L= 7600/8000 | acc=0.1015
+[LERF-INTERVAL] step 20/20 | masked=100.0% | L= 8000/8000 | acc=0.1000
+Saved to: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/morf_lerf_interval/audiomnist/res1dnet31/zero

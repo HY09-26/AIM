@@ -1,0 +1,80 @@
+MODEL=res1dnet31
+GPU=0
+MAXJOBS=4
+FOLD=1
+
+DATASETS="msos"
+MASKS="road"
+EXPLS="gradient gradinput smoothgrad smoothgrad_sq vargrad integrad gradient_abs gradinput_abs smoothgrad_abs integrad_abs random"
+
+SCRIPT=test_waveform.py
+OUTROOT= morf_lerf
+
+LOGPARENT="./log"
+LOGROOT="${LOGPARENT}/logs_${MODEL}_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$LOGROOT"
+
+run_one () {
+
+  local d="$1"
+  local mask="$2"
+  local m="$3"
+
+  local out_dir="${OUTROOT}/${d}/${MODEL}/${mask}"
+
+  if [ "$d" = "esc50" ]; then
+    out_dir="${out_dir}/fold_${FOLD}"
+  fi
+
+  local morf="${out_dir}/${m}_morf.pkl"
+  local lerf="${out_dir}/${m}_lerf.pkl"
+
+  local log="${LOGROOT}/${d}_${mask}_${m}.log"
+
+  # ================================
+  # SKIP if result exists
+  # ================================
+  if [ -f "$morf" ] && [ -f "$lerf" ]; then
+    echo "SKIP $MODEL | $d | $mask | $m"
+    return
+  fi
+
+  echo "RUN $MODEL | $d | $mask | $m"
+
+  CUDA_VISIBLE_DEVICES=$GPU python $SCRIPT \
+    --model $MODEL \
+    --dataset $d \
+    --mask_type $mask \
+    --expl_method $m \
+    --fold $FOLD \
+    --n_steps 20 \
+    --pgd_steps 20 \
+    --batch_size 32 \
+    --out_root $OUTROOT \
+    > "$log" 2>&1
+}
+
+# ================================
+# main loops
+# ================================
+for d in $DATASETS
+do
+  for mask in $MASKS
+  do
+    for m in $EXPLS
+    do
+
+      run_one "$d" "$mask" "$m" &
+
+      # throttle jobs
+      while [ "$(jobs -r | wc -l)" -ge "$MAXJOBS" ]
+      do
+        sleep 2
+      done
+
+    done
+  done
+done
+
+wait
+echo "ALL DONE"

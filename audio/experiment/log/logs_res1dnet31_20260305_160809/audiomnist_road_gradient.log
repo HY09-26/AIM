@@ -1,0 +1,48 @@
+[DATA] dataset=audiomnist X_wave=(6000, 8000) y=(6000,)
+[MODEL] loading ckpt: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/checkpoints/audiomnist/res1dnet31/best_model.pth
+[EXPL] loading: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/expl_audiomnist/res1dnet31/gradient.npy
+[EXPL] saliency: (6000, 8000)
+[ORDER] Loading cached orders from /mnt/left/home/2025/tony/hsinyuan/AIM_audio/morf_lerf/_cache/audiomnist/res1dnet31/orders/gradient_desc.npy
+[MORF-RANK] step 00/20 | masked=  0.0% | points=    0/8000 | acc=0.9807
+[MORF-RANK] step 01/20 | masked=  5.0% | points=  400/8000 | acc=0.7348
+[MORF-RANK] step 02/20 | masked= 10.0% | points=  800/8000 | acc=0.5428
+[MORF-RANK] step 03/20 | masked= 15.0% | points= 1200/8000 | acc=0.3832
+[MORF-RANK] step 04/20 | masked= 20.0% | points= 1600/8000 | acc=0.2547
+[MORF-RANK] step 05/20 | masked= 25.0% | points= 2000/8000 | acc=0.1950
+[MORF-RANK] step 06/20 | masked= 30.0% | points= 2400/8000 | acc=0.1797
+[MORF-RANK] step 07/20 | masked= 35.0% | points= 2800/8000 | acc=0.1680
+[MORF-RANK] step 08/20 | masked= 40.0% | points= 3200/8000 | acc=0.1593
+[MORF-RANK] step 09/20 | masked= 45.0% | points= 3600/8000 | acc=0.1525
+[MORF-RANK] step 10/20 | masked= 50.0% | points= 4000/8000 | acc=0.1500
+[MORF-RANK] step 11/20 | masked= 55.0% | points= 4400/8000 | acc=0.1432
+[MORF-RANK] step 12/20 | masked= 60.0% | points= 4800/8000 | acc=0.1383
+[MORF-RANK] step 13/20 | masked= 65.0% | points= 5200/8000 | acc=0.1313
+[MORF-RANK] step 14/20 | masked= 70.0% | points= 5600/8000 | acc=0.1290
+[MORF-RANK] step 15/20 | masked= 75.0% | points= 6000/8000 | acc=0.1252
+[MORF-RANK] step 16/20 | masked= 80.0% | points= 6400/8000 | acc=0.1290
+[MORF-RANK] step 17/20 | masked= 85.0% | points= 6800/8000 | acc=0.1287
+[MORF-RANK] step 18/20 | masked= 90.0% | points= 7200/8000 | acc=0.1285
+[MORF-RANK] step 19/20 | masked= 95.0% | points= 7600/8000 | acc=0.1403
+[MORF-RANK] step 20/20 | masked=100.0% | points= 8000/8000 | acc=0.1487
+[LERF-RANK] step 00/20 | masked=  0.0% | points=    0/8000 | acc=0.9807
+[LERF-RANK] step 01/20 | masked=  5.0% | points=  400/8000 | acc=0.7430
+[LERF-RANK] step 02/20 | masked= 10.0% | points=  800/8000 | acc=0.5487
+[LERF-RANK] step 03/20 | masked= 15.0% | points= 1200/8000 | acc=0.3943
+[LERF-RANK] step 04/20 | masked= 20.0% | points= 1600/8000 | acc=0.2548
+[LERF-RANK] step 05/20 | masked= 25.0% | points= 2000/8000 | acc=0.1902
+[LERF-RANK] step 06/20 | masked= 30.0% | points= 2400/8000 | acc=0.1698
+[LERF-RANK] step 07/20 | masked= 35.0% | points= 2800/8000 | acc=0.1622
+[LERF-RANK] step 08/20 | masked= 40.0% | points= 3200/8000 | acc=0.1487
+[LERF-RANK] step 09/20 | masked= 45.0% | points= 3600/8000 | acc=0.1377
+[LERF-RANK] step 10/20 | masked= 50.0% | points= 4000/8000 | acc=0.1300
+[LERF-RANK] step 11/20 | masked= 55.0% | points= 4400/8000 | acc=0.1227
+[LERF-RANK] step 12/20 | masked= 60.0% | points= 4800/8000 | acc=0.1190
+[LERF-RANK] step 13/20 | masked= 65.0% | points= 5200/8000 | acc=0.1158
+[LERF-RANK] step 14/20 | masked= 70.0% | points= 5600/8000 | acc=0.1155
+[LERF-RANK] step 15/20 | masked= 75.0% | points= 6000/8000 | acc=0.1127
+[LERF-RANK] step 16/20 | masked= 80.0% | points= 6400/8000 | acc=0.1120
+[LERF-RANK] step 17/20 | masked= 85.0% | points= 6800/8000 | acc=0.1123
+[LERF-RANK] step 18/20 | masked= 90.0% | points= 7200/8000 | acc=0.1138
+[LERF-RANK] step 19/20 | masked= 95.0% | points= 7600/8000 | acc=0.1302
+[LERF-RANK] step 20/20 | masked=100.0% | points= 8000/8000 | acc=0.1507
+Saved to: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/morf_lerf/audiomnist/res1dnet31/road

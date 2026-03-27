@@ -1,0 +1,64 @@
+[PGD] Using default eps for (res1dnet31 x msos) = 0.0015
+[DATA] dataset=msos X_wave=(500, 160000) y=(500,)
+[MODEL] loading ckpt: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/checkpoints/msos/res1dnet31/best_model.pth
+[EXPL] loading: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/expl_msos/res1dnet31/smoothgrad_sq.npy
+[EXPL] saliency: (500, 160000)
+[PGD] Running PGD once on FULL waveform...
+Traceback (most recent call last):
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform_interval.py", line 622, in <module>
+    main()
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform_interval.py", line 566, in main
+    X_adv = pgd_attack_waveform(
+            ^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment/test_waveform_interval.py", line 186, in pgd_attack_waveform
+    out = model(adapt_wave_input(xb, model_name))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/model/res1dnet31.py", line 211, in forward
+    x = self.resnet(x)   # (B, 2048, T')
+        ^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/model/res1dnet31.py", line 148, in forward
+    x = self.layer1(x)
+        ^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/model/res1dnet31.py", line 66, in forward
+    out = self.conv1(out)
+          ^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/conv.py", line 371, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/left/home/2025/tony/hsinyuan/python_3-11-8/lib/python3.11/site-packages/torch/nn/modules/conv.py", line 366, in _conv_forward
+    return F.conv1d(
+           ^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 500.00 MiB. GPU 0 has a total capacity of 23.64 GiB of which 349.19 MiB is free. Process 3936577 has 940.00 MiB memory in use. Process 3971408 has 2.76 GiB memory in use. Process 3972420 has 2.76 GiB memory in use. Process 3972643 has 15.07 GiB memory in use. Including non-PyTorch memory, this process has 1.75 GiB memory in use. Of the allocated memory 1.35 GiB is allocated by PyTorch, and 18.92 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

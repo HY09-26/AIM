@@ -1,0 +1,49 @@
+[PGD] Using default eps for (res1dnet31 x msos) = 0.0015
+[DATA] dataset=msos X_wave=(500, 160000) y=(500,)
+[MODEL] loading ckpt: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/experiment_utils/checkpoints/msos/res1dnet31/best_model.pth
+[EXPL] loading: /mnt/left/home/2025/tony/hsinyuan/AIM_audio/expl_msos/res1dnet31/gradinput.npy
+[EXPL] saliency: (500, 160000)
+[PGD] Loading cached PGD from /mnt/left/home/2025/tony/hsinyuan/AIM_audio/morf_lerf_interval/_cache/msos/res1dnet31/pgd/nofold/pgd_eps0.0015_steps20.npy
+[MORF-INTERVAL] step 00/20 | masked=  0.0% | L=    0/160000 | acc=0.9180
+[MORF-INTERVAL] step 01/20 | masked=  5.0% | L= 8000/160000 | acc=0.8840
+[MORF-INTERVAL] step 02/20 | masked= 10.0% | L=16000/160000 | acc=0.8440
+[MORF-INTERVAL] step 03/20 | masked= 15.0% | L=24000/160000 | acc=0.7900
+[MORF-INTERVAL] step 04/20 | masked= 20.0% | L=32000/160000 | acc=0.7260
+[MORF-INTERVAL] step 05/20 | masked= 25.0% | L=40000/160000 | acc=0.6780
+[MORF-INTERVAL] step 06/20 | masked= 30.0% | L=48000/160000 | acc=0.6080
+[MORF-INTERVAL] step 07/20 | masked= 35.0% | L=56000/160000 | acc=0.5660
+[MORF-INTERVAL] step 08/20 | masked= 40.0% | L=64000/160000 | acc=0.5040
+[MORF-INTERVAL] step 09/20 | masked= 45.0% | L=72000/160000 | acc=0.4720
+[MORF-INTERVAL] step 10/20 | masked= 50.0% | L=80000/160000 | acc=0.4320
+[MORF-INTERVAL] step 11/20 | masked= 55.0% | L=88000/160000 | acc=0.3920
+[MORF-INTERVAL] step 12/20 | masked= 60.0% | L=96000/160000 | acc=0.3580
+[MORF-INTERVAL] step 13/20 | masked= 65.0% | L=104000/160000 | acc=0.3300
+[MORF-INTERVAL] step 14/20 | masked= 70.0% | L=112000/160000 | acc=0.3100
+[MORF-INTERVAL] step 15/20 | masked= 75.0% | L=120000/160000 | acc=0.2900
+[MORF-INTERVAL] step 16/20 | masked= 80.0% | L=128000/160000 | acc=0.2660
+[MORF-INTERVAL] step 17/20 | masked= 85.0% | L=136000/160000 | acc=0.2460
+[MORF-INTERVAL] step 18/20 | masked= 90.0% | L=144000/160000 | acc=0.2320
+[MORF-INTERVAL] step 19/20 | masked= 95.0% | L=152000/160000 | acc=0.2240
+[MORF-INTERVAL] step 20/20 | masked=100.0% | L=160000/160000 | acc=0.2060
+[LERF-INTERVAL] step 00/20 | masked=  0.0% | L=    0/160000 | acc=0.9180
+[LERF-INTERVAL] step 01/20 | masked=  5.0% | L= 8000/160000 | acc=0.8820
+[LERF-INTERVAL] step 02/20 | masked= 10.0% | L=16000/160000 | acc=0.8380
+[LERF-INTERVAL] step 03/20 | masked= 15.0% | L=24000/160000 | acc=0.7760
+[LERF-INTERVAL] step 04/20 | masked= 20.0% | L=32000/160000 | acc=0.7280
+[LERF-INTERVAL] step 05/20 | masked= 25.0% | L=40000/160000 | acc=0.6680
+[LERF-INTERVAL] step 06/20 | masked= 30.0% | L=48000/160000 | acc=0.6260
+[LERF-INTERVAL] step 07/20 | masked= 35.0% | L=56000/160000 | acc=0.5640
+[LERF-INTERVAL] step 08/20 | masked= 40.0% | L=64000/160000 | acc=0.5100
+[LERF-INTERVAL] step 09/20 | masked= 45.0% | L=72000/160000 | acc=0.4700
+[LERF-INTERVAL] step 10/20 | masked= 50.0% | L=80000/160000 | acc=0.4220
+[LERF-INTERVAL] step 11/20 | masked= 55.0% | L=88000/160000 | acc=0.4000
+[LERF-INTERVAL] step 12/20 | masked= 60.0% | L=96000/160000 | acc=0.3720
+[LERF-INTERVAL] step 13/20 | masked= 65.0% | L=104000/160000 | acc=0.3420
+[LERF-INTERVAL] step 14/20 | masked= 70.0% | L=112000/160000 | acc=0.3220
+[LERF-INTERVAL] step 15/20 | masked= 75.0% | L=120000/160000 | acc=0.2940
+[LERF-INTERVAL] step 16/20 | masked= 80.0% | L=128000/160000 | acc=0.2720
+[LERF-INTERVAL] step 17/20 | masked= 85.0% | L=136000/160000 | acc=0.2600
+[LERF-INTERVAL] step 18/20 | masked= 90.0% | L=144000/160000 | acc=0.2360
+[LERF-INTERVAL] step 19/20 | masked= 95.0% | L=152000/160000 | acc=0.2260
+[LERF-INTERVAL] step 20/20 | masked=100.0% | L=160000/160000 | acc=0.2060
+Saved to: morf_lerf_interval/msos/res1dnet31/pgd
