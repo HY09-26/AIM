@@ -1,0 +1,11 @@
+# Image experiment dependencies
+torch>=2.0
+torchvision>=0.15
+numpy>=1.23
+scipy>=1.10
+pandas>=2.0
+matplotlib>=3.7
+tqdm>=4.65
+captum>=0.6
+Pillow>=9.5
+timm>=0.9
