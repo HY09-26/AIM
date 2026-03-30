@@ -1,242 +1,283 @@
+"""
+area.py - AOC / ABC / AUC metrics from MoRF and LeRF result files.
+
+Metrics:
+  AOC (Area Over Curve)      = mean(1 - MoRF accuracy)
+  ABC (Area Between Curves)  = mean(max(LeRF - MoRF, 0))
+  AUC (Area Under Curve)     = mean(LeRF accuracy)
+
+Expected directory structure (produced by test_waveform.py / test_waveform_interval.py):
+  <morf_lerf_root>/<dataset>/<model>/<mask_type>/[fold_N/]{method}_morf.pkl
+  <morf_lerf_root>/<dataset>/<model>/<mask_type>/[fold_N/]{method}_lerf.pkl
+
+For ESC-50, results are stored inside fold_1/ ... fold_5/ subdirectories.
+"""
+
+from __future__ import annotations
+
+import argparse
+import glob
 import os
-import re
 import pickle
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
 
-# =========================
-# Path (project-root safe)
-# =========================
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_ROOT = os.path.join(PROJECT_ROOT, "experiment_AudioMNIST", "morf_lerf_audio")
+# ============================================================
+# Constants
+# ============================================================
 
-# AudioMNIST
-CHANCE = 0.1
-
-# Your method naming (filename -> short name)
-METHOD_MAP = {
-    "gradient": "GD",
-    "gradinput": "GI",
-    "smoothgrad": "SG",
-    "smoothgrad_sq": "SS",
-    "vargrad": "VG",
-    "integrad": "IG",
-    "random": "RD",
-}
-METHOD_MAP_ABS = {
-    "gradient": "GDA",
-    "gradinput": "GIA",
-    "smoothgrad": "SGA",
-    "integrad": "IGA",
+DATASET_CHANCE: dict[str, float] = {
+    "audiomnist": 1 / 10,   # 10 classes
+    "esc50":      1 / 50,   # 50 classes
+    "msos":       1 / 5,    # 5 classes
 }
 
-# -------------------------
-# Helpers
-# -------------------------
-def load_pkl(path):
-    with open(path, "rb") as f:
-        return pickle.load(f)
+DATASETS = ["audiomnist", "esc50", "msos"]
+MODELS   = ["alexnet", "cnn14", "audionet", "res1dnet31"]
+MASKS    = ["zero", "pgd", "road"]
 
-def _as_curve(obj):
+METHOD_ORDER = [
+    "gradient",
+    "gradinput",
+    "smoothgrad",
+    "smoothgrad_sq",
+    "vargrad",
+    "integrad",
+    "gradient_abs",
+    "gradinput_abs",
+    "smoothgrad_abs",
+    "integrad_abs",
+    "random",
+]
+
+METHOD_DISPLAY = {
+    "gradient":       "GD",
+    "gradinput":      "GI",
+    "smoothgrad":     "SG",
+    "smoothgrad_sq":  "SS",
+    "vargrad":        "VG",
+    "integrad":       "IG",
+    "gradient_abs":   "GDA",
+    "gradinput_abs":  "GIA",
+    "smoothgrad_abs": "SGA",
+    "integrad_abs":   "IGA",
+    "random":         "RD",
+}
+
+
+# ============================================================
+# I/O helpers
+# ============================================================
+
+def load_curve(pkl_path: str, drop_first: bool = True) -> np.ndarray:
     """
-    Try to extract an accuracy curve from a loaded pickle object.
-    Expected: (N, K+1) or (K+1,) or list-like.
-    Returns: np.ndarray of shape (K+1,) in float.
+    Load a MoRF or LeRF accuracy curve from a pickle file.
+
+    Args:
+        pkl_path:   Path to the .pkl file.
+        drop_first: If True, drop the first element (step 0, 0% masked).
+
+    Returns:
+        1-D float array of per-step accuracies.
     """
-    # common cases
+    with open(pkl_path, "rb") as f:
+        obj = pickle.load(f)
+
+    # Support dict-wrapped curves (legacy format)
     if isinstance(obj, dict):
-        # try common keys first
-        for k in ["acc", "accuracy", "acc_curve", "curve", "accs", "acc_list"]:
-            if k in obj:
-                obj = obj[k]
+        for key in ("acc", "accuracy", "acc_curve", "curve", "accs"):
+            if key in obj:
+                obj = obj[key]
                 break
         else:
-            # fallback: pick the first array-like value
             for v in obj.values():
                 if isinstance(v, (list, tuple, np.ndarray)):
                     obj = v
                     break
 
-    arr = np.asarray(obj)
+    arr = np.asarray(obj, dtype=float).squeeze()
     if arr.ndim == 0:
-        raise ValueError("Cannot extract curve: scalar found.")
-    if arr.ndim == 1:
-        return arr.astype(float)
+        raise ValueError(f"Scalar found in {pkl_path}; expected a curve array.")
     if arr.ndim >= 2:
-        # average across samples / batches
-        return arr.mean(axis=0).astype(float)
+        arr = arr.mean(axis=0)   # average over runs if stacked
 
-def parse_fname(fname):
+    if drop_first and len(arr) > 1:
+        arr = arr[1:]
+    return arr
+
+
+# ============================================================
+# Metrics
+# ============================================================
+
+def compute_metrics(
+    curve_morf: np.ndarray,
+    curve_lerf: np.ndarray,
+    chance: float,
+) -> dict[str, float]:
     """
-    Parse names like:
-      alexnet_gradient_morf.pkl
-      alexnet_gradient_abs_lerf.pkl
-      audionet_integrated_grad_pgd_morf.pkl
-      audionet_smoothgrad_waveform_zero_lerf.pkl
-    Returns dict with fields:
-      model, method_raw, is_abs, masking, input, kind(morf/lerf)
+    Compute AOC, ABC, and AUC from paired MoRF and LeRF accuracy curves.
+
+    Values are clipped to [chance, 1.0] before metric computation, consistent
+    with the original AIM paper.
+
+    Args:
+        curve_morf: MoRF accuracy at each masking step, shape (K,).
+        curve_lerf: LeRF accuracy at each masking step, shape (K,).
+        chance:     Random-chance accuracy (1 / num_classes).
+
+    Returns:
+        Dictionary with keys "aoc", "abc", "auc".
     """
-    name = fname.replace(".pkl", "")
-    parts = name.split("_")
-    if len(parts) < 3:
-        return None
-
-    model = parts[0]
-    kind = parts[-1]  # morf or lerf
-    if kind not in ("morf", "lerf"):
-        return None
-
-    tokens = parts[1:-1]  # middle tokens
-
-    # detect flags
-    is_abs = "abs" in tokens
-    masking = "pgd" if "pgd" in tokens else ("zero" if "zero" in tokens else "unknown")
-    inp = "waveform" if "waveform" in tokens else ("spectrogram" if "spectrogram" in tokens else "unknown")
-
-    # method token(s): remove known flags
-    flag_set = {"abs", "pgd", "zero", "waveform", "spectrogram"}
-    method_tokens = [t for t in tokens if t not in flag_set]
-
-    # recover multi-token method names
-    method_raw = "_".join(method_tokens).lower()
-
-    # sometimes files are like alexnet_gradient_abs_morf (method_tokens=["gradient"])
-    # or alexnet_integrated_grad_morf (method_tokens=["integrated","grad"])
-    if method_raw == "integrad":
-        pass
+    L = min(len(curve_morf), len(curve_lerf))
+    m = np.clip(curve_morf[:L], chance, 1.0)
+    l = np.clip(curve_lerf[:L], chance, 1.0)
 
     return {
-        "model": model,
-        "method_raw": method_raw,
-        "is_abs": is_abs,
-        "masking": masking,
-        "input": inp,
-        "kind": kind,
+        "aoc": float(np.mean(1.0 - m)),
+        "abc": float(np.mean(np.clip(l - m, 0.0, None))),
+        "auc": float(np.mean(l)),
     }
 
-def method_short(method_raw, is_abs):
-    if is_abs:
-        if method_raw in METHOD_MAP_ABS:
-            return METHOD_MAP_ABS[method_raw]
-        # some abs variants not defined (e.g. smoothgrad_sq_abs) -> skip safely
-        return None
-    else:
-        return METHOD_MAP.get(method_raw, None)
 
-def compute_metrics(curveM, curveL):
-    # curves are already normalized to [chance, top_acc] in original AIM;
-    # for safety, we clip again relative to unmasked mean.
-    top_acc = max(curveM[0], curveL[0]) if len(curveM) > 0 else 1.0
-    curveM = np.clip(curveM, CHANCE, top_acc)
-    curveL = np.clip(curveL, CHANCE, top_acc)
+# ============================================================
+# Folder scanning
+# ============================================================
 
-    # standard AIM area-based metrics
-    aoc = np.mean(1.0 - curveM)
-    abc = np.mean(np.clip(curveL - curveM, 0, None))
-    auc = np.mean(curveL)
-    return aoc, abc, auc
+def get_result_folders(root: str, dataset: str, model: str, mask: str) -> list[str]:
+    """Return result directories, expanding ESC-50 fold subdirectories."""
+    if dataset == "esc50":
+        pattern = os.path.join(root, dataset, model, mask, "fold_*")
+        return sorted(p for p in glob.glob(pattern) if os.path.isdir(p))
+    folder = os.path.join(root, dataset, model, mask)
+    return [folder] if os.path.isdir(folder) else []
 
-# -------------------------
-# Main scan
-# -------------------------
-def scan_all_pickles():
+
+def compute_folder_metrics(
+    folder: str,
+    chance: float,
+    drop_first: bool = True,
+) -> pd.DataFrame:
+    """
+    Compute AOC/ABC/AUC for every (method, morf/lerf) pair found in a folder.
+
+    Args:
+        folder:     Directory containing *_morf.pkl and *_lerf.pkl files.
+        chance:     Random-chance accuracy for clipping.
+        drop_first: If True, drop step-0 (0% masked) from curves.
+
+    Returns:
+        DataFrame with columns [method, display, aoc, abc, auc].
+    """
     rows = []
-    for model in ["alexnet", "audionet"]:
-        model_dir = os.path.join(DATA_ROOT, model)
-        if not os.path.isdir(model_dir):
+    for method in METHOD_ORDER:
+        morf_path = os.path.join(folder, f"{method}_morf.pkl")
+        lerf_path = os.path.join(folder, f"{method}_lerf.pkl")
+        if not (os.path.isfile(morf_path) and os.path.isfile(lerf_path)):
             continue
-        for fname in os.listdir(model_dir):
-            if not fname.endswith(".pkl"):
-                continue
-            meta = parse_fname(fname)
-            if meta is None:
-                continue
-            meta["path"] = os.path.join(model_dir, fname)
-            rows.append(meta)
-    return rows
-
-def pair_morf_lerf(rows):
-    """
-    Build pairs keyed by (model, input, masking, method_short) -> (morf_path, lerf_path)
-    """
-    pairs = {}
-    for r in rows:
-        ms = method_short(r["method_raw"], r["is_abs"])
-        if ms is None:
+        try:
+            curve_m = load_curve(morf_path, drop_first=drop_first)
+            curve_l = load_curve(lerf_path, drop_first=drop_first)
+        except Exception as exc:
+            print(f"[WARN] Could not load {method} in {folder}: {exc}")
             continue
-        key = (r["model"], r["input"], r["masking"], ms)
-        pairs.setdefault(key, {})[r["kind"]] = r["path"]
 
-    # keep only complete pairs
-    out = {}
-    for k, v in pairs.items():
-        if "morf" in v and "lerf" in v:
-            out[k] = (v["morf"], v["lerf"])
-    return out
+        metrics = compute_metrics(curve_m, curve_l, chance)
+        rows.append({
+            "method":  method,
+            "display": METHOD_DISPLAY.get(method, method.upper()),
+            **metrics,
+        })
 
-def summarize_table(pairs):
-    """
-    Aggregate over all available pairs (could include multiple files per config if you have repeats).
-    Output grouped by (model, input, masking)
-    """
-    # group -> method -> list(metrics)
-    grouped = {}
-    for (model, inp, masking, method), (pm, pl) in pairs.items():
-        grouped.setdefault((model, inp, masking), {}).setdefault(method, []).append((pm, pl))
+    return pd.DataFrame(rows)
 
-    for gkey in sorted(grouped.keys()):
-        model, inp, masking = gkey
-        print(f"\n==============================")
-        print(f"{model.upper()} | {inp.upper()} | {masking.upper()}")
-        print(f"==============================")
-        print("Method |   AOC   |   ABC   |   AUC")
 
-        methods_sorted = sorted(grouped[gkey].keys(), key=lambda x: x)  # alphabetical short names
-        for m in methods_sorted:
-            aocs, abcs, aucs = [], [], []
-            for pm, pl in grouped[gkey][m]:
-                morf_obj = load_pkl(pm)
-                lerf_obj = load_pkl(pl)
+# ============================================================
+# Main
+# ============================================================
 
-                curveM = _as_curve(morf_obj)
-                curveL = _as_curve(lerf_obj)
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Compute AOC/ABC/AUC metrics from MoRF/LeRF result files."
+    )
+    parser.add_argument("--root",       default="morf_lerf",
+                        help="Root directory of morf/lerf result folders.")
+    parser.add_argument("--dataset",    choices=DATASETS + ["all"], default="all")
+    parser.add_argument("--model",      default="all",
+                        help="Model name, or 'all'.")
+    parser.add_argument("--mask",       choices=MASKS + ["all"], default="all")
+    parser.add_argument("--drop_first", action="store_true",
+                        help="Drop the 0%% masked step from curves.")
+    parser.add_argument("--out_csv",    default="audio_area_metrics.csv",
+                        help="Output CSV path.")
+    args = parser.parse_args()
 
-                # common convention: element 0 = unmasked; use [1:] as masking trajectory
-                if curveM.ndim != 1 or curveL.ndim != 1:
-                    raise ValueError("Curves must be 1D after extraction.")
-                if len(curveM) >= 2:
-                    trajM = curveM[1:]
-                else:
-                    trajM = curveM
-                if len(curveL) >= 2:
-                    trajL = curveL[1:]
-                else:
-                    trajL = curveL
+    datasets = DATASETS if args.dataset == "all" else [args.dataset]
+    models   = MODELS   if args.model   == "all" else [args.model]
+    masks    = MASKS    if args.mask    == "all" else [args.mask]
 
-                aoc, abc, auc = compute_metrics(trajM, trajL)
-                aocs.append(aoc); abcs.append(abc); aucs.append(auc)
+    all_rows: list[dict] = []
 
-            # mean±std over whatever files you have for that config
-            print(
-                f"{m:>4} | "
-                f"{np.mean(aocs):.3f}±{np.std(aocs):.3f} | "
-                f"{np.mean(abcs):.3f}±{np.std(abcs):.3f} | "
-                f"{np.mean(aucs):.3f}±{np.std(aucs):.3f}"
-            )
+    for dataset in datasets:
+        chance = DATASET_CHANCE[dataset]
+        for model in models:
+            for mask in masks:
+                folders = get_result_folders(args.root, dataset, model, mask)
+                if not folders:
+                    continue
+
+                fold_dfs: list[pd.DataFrame] = []
+                for folder in folders:
+                    fold = os.path.basename(folder) if dataset == "esc50" else "no_fold"
+                    df = compute_folder_metrics(folder, chance, drop_first=args.drop_first)
+                    if df.empty:
+                        continue
+                    df["fold"] = fold
+                    fold_dfs.append(df)
+
+                if not fold_dfs:
+                    continue
+
+                # Average metrics across folds
+                combined = pd.concat(fold_dfs, ignore_index=True)
+                agg = (
+                    combined.groupby("method")[["aoc", "abc", "auc"]]
+                    .agg(["mean", "std"])
+                )
+                agg.columns = ["_".join(c) for c in agg.columns]
+                agg = agg.reset_index()
+
+                print(f"\n{'='*60}")
+                print(f"Dataset={dataset.upper()}  Model={model}  Mask={mask}")
+                print(f"{'='*60}")
+                print(f"{'Method':>6}  {'AOC':>12}  {'ABC':>12}  {'AUC':>12}")
+                for _, row in agg.iterrows():
+                    disp = METHOD_DISPLAY.get(row["method"], row["method"].upper())
+                    print(
+                        f"{disp:>6}  "
+                        f"{row['aoc_mean']:.3f}±{row['aoc_std']:.3f}  "
+                        f"{row['abc_mean']:.3f}±{row['abc_std']:.3f}  "
+                        f"{row['auc_mean']:.3f}±{row['auc_std']:.3f}"
+                    )
+
+                for _, row in agg.iterrows():
+                    all_rows.append({
+                        "dataset": dataset, "model": model, "mask": mask,
+                        "method":  row["method"],
+                        "display": METHOD_DISPLAY.get(row["method"], row["method"].upper()),
+                        "aoc_mean": row["aoc_mean"], "aoc_std": row["aoc_std"],
+                        "abc_mean": row["abc_mean"], "abc_std": row["abc_std"],
+                        "auc_mean": row["auc_mean"], "auc_std": row["auc_std"],
+                    })
+
+    if all_rows:
+        pd.DataFrame(all_rows).to_csv(args.out_csv, index=False)
+        print(f"\nSaved metrics to: {args.out_csv}")
+    else:
+        print("\n[WARN] No results found. Check --root path and directory structure.")
+
 
 if __name__ == "__main__":
-    print("PROJECT_ROOT =", PROJECT_ROOT)
-    print("DATA_ROOT    =", DATA_ROOT)
-    if not os.path.isdir(DATA_ROOT):
-        raise FileNotFoundError(f"DATA_ROOT not found: {DATA_ROOT}")
-
-    rows = scan_all_pickles()
-    if len(rows) == 0:
-        raise RuntimeError(f"No .pkl files found under: {DATA_ROOT}")
-
-    pairs = pair_morf_lerf(rows)
-    if len(pairs) == 0:
-        raise RuntimeError(
-            "No morf/lerf pairs found. Check filenames end with _morf.pkl and _lerf.pkl."
-        )
-
-    summarize_table(pairs)
+    main()
