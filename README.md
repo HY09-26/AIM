@@ -339,19 +339,6 @@ timm
 
 ---
 
-## Citation
-
-If you use this code, please cite the original AIM paper:
-
-```bibtex
-@inproceedings{aim2024,
-  title     = {{AIM}: Adversarial Information Masking for Cross-Modal Evaluation of Explanation Methods},
-  booktitle = {Advances in Neural Information Processing Systems},
-  year      = {2024},
-}
-```
-
----
 
 ## Acknowledgements
 
