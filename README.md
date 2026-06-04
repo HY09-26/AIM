@@ -20,7 +20,7 @@ AIM/
 │   └── experiment_utils/
 │       ├── model.py                # ResNet-50, EfficientNet-B0, RepVGG-B0
 │       ├── utils.py                # PGD attack, ROAD masking, helpers
-│       ├── image_loader.py         # Dataset loading
+│       └── image_loader.py         # Dataset loading
 │
 ├── audio/                          # Audio modality
 │   ├── experiment/
@@ -34,7 +34,7 @@ AIM/
 │       ├── model/                  # AudioNet, Res1dNet31, AlexNet_Audio, CNN14, ...
 │       ├── utils.py                # PGD attack, ROAD/MFBB masking, loaders
 │       ├── mfbb.py                 # Multipoint Fractional Brownian Bridge
-│       ├── train_audio.py          # Unified training (AudioMNIST / ESC-50 / MSoS)
+│       └── train_audio.py          # Unified training (AudioMNIST / ESC-50 / MSoS)
 │
 └── eeg/                            # EEG modality
     ├── experiment/
