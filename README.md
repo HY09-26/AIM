@@ -35,8 +35,6 @@ AIM/
 │       ├── utils.py                # PGD attack, ROAD/MFBB masking, loaders
 │       ├── mfbb.py                 # Multipoint Fractional Brownian Bridge
 │       ├── train_audio.py          # Unified training (AudioMNIST / ESC-50 / MSoS)
-│       ├── expl_gen_*.py           # Saliency generation scripts
-│       └── expl_vis_*.py           # Saliency visualization scripts
 │
 └── eeg/                            # EEG modality
     ├── experiment/
