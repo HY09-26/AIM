@@ -1,6 +1,5 @@
 # AIM: Adversarial Information Masking for Faithfulness Evaluation of Saliency Maps
 
-> NeurIPS 2026 Submission
 
 Post-hoc saliency methods are widely used to interpret deep neural networks, but their faithfulness is difficult to evaluate reliably. Existing evaluations mask features according to saliency-induced orderings and measure performance degradation, but this degradation can be confounded by the masking operator: zero masking may create out-of-distribution artifacts, while interpolation-based masking may preserve residual predictive information.
 
@@ -14,9 +13,7 @@ We propose **AIM (Adversarial Information Masking)**, a saliency-guided adversar
 AIM/
 ├── image/                          # Image modality
 │   ├── experiment/
-│   │   ├── test_brainmri.py        # MoRF/LeRF on Brain Tumor MRI
-│   │   ├── test_imagenet.py        # MoRF/LeRF on ImageNet
-│   │   ├── test_oxfordpet.py       # MoRF/LeRF on Oxford-IIIT Pet
+│   │   ├── test_image.py           # MoRF/LeRF on Brain Tumor MRI / ImageNet / Oxford-IIIT Pet
 │   │   ├── area.py                 # Compute AOC / ABC / AUC
 │   │   ├── spearman.py             # MoRF–LeRF Spearman correlation
 │   │   └── plot_morf_lerf.py       # Plot MoRF/LeRF curves
@@ -24,9 +21,6 @@ AIM/
 │       ├── model.py                # ResNet-50, EfficientNet-B0, RepVGG-B0
 │       ├── utils.py                # PGD attack, ROAD masking, helpers
 │       ├── image_loader.py         # Dataset loading
-│       ├── pets_dataset.py         # Oxford-IIIT Pet dataset
-│       ├── expl_gen_*.py           # Saliency map generation
-│       └── expl_vis_*.py           # Saliency visualization
 │
 ├── audio/                          # Audio modality
 │   ├── experiment/
@@ -40,9 +34,7 @@ AIM/
 │       ├── model/                  # AudioNet, Res1dNet31, AlexNet_Audio, CNN14, ...
 │       ├── utils.py                # PGD attack, ROAD/MFBB masking, loaders
 │       ├── mfbb.py                 # Multipoint Fractional Brownian Bridge
-│       ├── train_audiomnist.py     # AudioMNIST training pipeline
-│       ├── train_esc50.py          # ESC-50 training pipeline
-│       ├── train_msos.py           # MSoS training pipeline
+│       ├── train_audio.py          # Unified training (AudioMNIST / ESC-50 / MSoS)
 │       ├── expl_gen_*.py           # Saliency generation scripts
 │       └── expl_vis_*.py           # Saliency visualization scripts
 │
@@ -74,31 +66,7 @@ AIM/
 
 ---
 
-## Method Overview
 
-### Masking Strategies
-
-| Strategy | Description |
-|----------|-------------|
-| **Zeroing** | Replace masked features with zero: $x'_{i \in \Phi} = 0$ |
-| **mdROAD** | In-distribution imputation: $x'_{i \in \Phi} = \mathcal{I}(x_{i \notin \Phi})$ using spatial interpolation (images/EEG channels), MFBB noise (waveforms/time-segments), or 1/f polynomial fitting (EEG frequency bands) |
-| **AIM** | Adversarial replacement: $x' = (1 - M) \odot x + M \odot x^{\text{adv}}$, where $x^{\text{adv}}$ is a PGD-generated adversarial counterpart |
-
-### Evaluation Metrics
-
-Let $\text{Acc}(x_k^M)$ and $\text{Acc}(x_k^L)$ denote model accuracy after masking the top-$k$ most/least important features, and $|C|$ the number of classes:
-
-$$\text{AOC} = \frac{1}{K}\sum_{k=1}^{K} \frac{\text{Acc}(x_0) - \text{Acc}(x_k^M)}{\text{Acc}(x_0) - \frac{1}{|C|}}$$
-
-$$\text{ABC} = \frac{1}{K}\sum_{k=1}^{K} \frac{\text{Acc}(x_k^L) - \text{Acc}(x_k^M)}{\text{Acc}(x_0) - \frac{1}{|C|}}$$
-
-$$\text{AUC} = \frac{1}{K}\sum_{k=1}^{K} \frac{\text{Acc}(x_k^L) - \frac{1}{|C|}}{\text{Acc}(x_0) - \frac{1}{|C|}}$$
-
-Higher AOC → stronger MoRF degradation. Higher AUC → stronger LeRF preservation. Higher ABC → greater MoRF–LeRF separation. All indicate more faithful explanations.
-
-**MoRF–LeRF consistency** (Spearman $\rho$ between per-method rankings under MoRF and LeRF) measures masking-operator reliability. Random-attribution ABC close to zero is a sanity check for masking bias.
-
----
 
 ## Datasets
 
@@ -198,25 +166,10 @@ pip install mne
 ```bash
 cd image
 
-# Brain Tumor MRI
-python experiment/test_brainmri.py \
-  --model resnet_50 \           # resnet_50 | efficientnet_b0 | repvgg_b0
-  --expl_method gradcam \
-  --mask_type pgd \             # zero | pgd | road
-  --mode morf \                 # morf | lerf
-  --n_steps 20
-
-# ImageNet
-python experiment/test_imagenet.py \
-  --model efficientnet_b0 \
-  --expl_method smoothgradcampp \
-  --mask_type road
-
-# Oxford-IIIT Pet
-python experiment/test_oxfordpet.py \
-  --model repvgg_b0 \
-  --expl_method gradcampp \
-  --mask_type pgd
+# Brain Tumor MRI / ImageNet / Oxford-IIIT Pet — all via test_image.py
+python experiment/test_image.py --dataset brain_mri  --model resnet_50       --expl_method gradcam         --mask_type pgd  --mode morf --n_steps 20
+python experiment/test_image.py --dataset imagenet   --model efficientnet_b0 --expl_method smoothgradcampp --mask_type road
+python experiment/test_image.py --dataset oxford_pet --model repvgg_b0       --expl_method gradcampp       --mask_type pgd
 
 # Compute AOC / ABC / AUC
 python experiment/area.py \
@@ -392,6 +345,22 @@ Raw .mat files (per-subject):
   ERN:     Data_S<NN>_Sess.mat
   SSVEP:   U0<NN>.mat
 ```
+
+---
+
+## Evaluation Metrics
+
+Let $\text{Acc}(x_k^M)$ and $\text{Acc}(x_k^L)$ denote model accuracy after masking the $k$ most / least important features, $x_0$ the unmasked input, and $x_{\text{allmasked}}$ the fully-masked input (all features replaced):
+
+$$\text{AOC} = \frac{1}{K}\sum_{k=1}^{K} \frac{\text{Acc}(x_0) - \text{Acc}(x_k^M)}{\text{Acc}(x_0) - \text{Acc}(x_{\text{allmasked}})}$$
+
+$$\text{ABC} = \frac{1}{K}\sum_{k=1}^{K} \frac{\text{Acc}(x_k^L) - \text{Acc}(x_k^M)}{\text{Acc}(x_0) - \text{Acc}(x_{\text{allmasked}})}$$
+
+$$\text{AUC} = \frac{1}{K}\sum_{k=1}^{K} \frac{\text{Acc}(x_k^L) - \text{Acc}(x_{\text{allmasked}})}{\text{Acc}(x_0) - \text{Acc}(x_{\text{allmasked}})}$$
+
+Higher AOC → stronger MoRF degradation (saliency identifies the most-critical features). Higher AUC → stronger LeRF preservation. Higher ABC → greater MoRF–LeRF separation. All indicate more faithful explanations.
+
+MoRF–LeRF Spearman $\rho$ between per-method rankings measures masking-operator reliability. Random-attribution ABC near zero is a sanity check for masking bias.
 
 ---
 
