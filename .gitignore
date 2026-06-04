@@ -1,8 +1,32 @@
+# Data files
 *.pkl
 *.npy
 *.pth
 *.pt
 *.ckpt
+*.wav
+*.mp3
+*.mat
+*.hdf5
+*.h5
+*.csv
+*.npz
+
+# Model checkpoints & cache
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+checkpoints/
+data/
+*_cache/
+expl_*/
+morf_lerf*/
+log/
+logs_*/
+acc_mat/
+figures/
+repeat*/
+
+# OS
+.DS_Store
+Thumbs.db
