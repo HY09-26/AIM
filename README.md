@@ -58,6 +58,8 @@ AIM/
     │   ├── tsae_test.py            # Time-segment masking — adversarial (AIM)
     │   └── tsroad_test.py          # Time-segment masking — MFBB imputation (mdROAD)
     ├── experiment_utils/
+    │   ├── eeg_config.py           # Per-dataset configuration (paths, kwerg, sub_list, …)
+    │   ├── masking_utils.py        # find_neighbors, find_crop, NoisySpatialImputer, electrode topology
     │   ├── model.py                # EEGNet, InterpretableCNN, SCCNet (+ SSVEP variants)
     │   ├── utils.py                # Training/evaluation loops, data loaders
     │   ├── expl_gen.py             # Saliency map generation
@@ -284,41 +286,52 @@ EEG scripts evaluate three feature axes (channel / frequency / time-segment), ea
 | **Frequency** | `fqzero_test.py` | `fqae_test.py` | `fqroad_test.py` |
 | **Time-segment** | `tszero_test.py` | `tsae_test.py` | `tsroad_test.py` |
 
-**Before running:** set the path variables near the top of each script:
+**Before running:** edit the two path constants in `eeg/experiment_utils/eeg_config.py`:
 
 ```python
-# ===== PATH CONFIGURATION =====
+# eeg/experiment_utils/eeg_config.py
 IRISHSIEH_DIR = "/path/to/pretrained_models_and_explanations"
 SAVE_DIR      = "/path/to/output_directory"
 ```
 
-Also set `dataname` to select the active dataset: `'MI'` (SMR), `'ERN'`, or `'SSVEP'`.
+That is the only file you need to edit. Dataset selection is a CLI argument (`--dataname`).
 
 ```bash
 cd eeg
 
-# Channel masking
-python experiment/chzero_test.py --abs_saliency 1
-python experiment/chae_test.py   --abs_saliency 1 --rep 0
-python experiment/chroad_test.py --abs_saliency 1 --rep 0
+# Channel masking — run once per dataset × repeat
+python experiment/chzero_test.py --dataname ERN  --abs_saliency 1 --rep 0
+python experiment/chae_test.py   --dataname ERN  --abs_saliency 1 --rep 0
+python experiment/chroad_test.py --dataname MI   --abs_saliency 1 --rep 0
 
 # Frequency masking
-python experiment/fqzero_test.py --abs_saliency 1
-python experiment/fqae_test.py   --abs_saliency 1 --rep 0
-python experiment/fqroad_test.py --abs_saliency 1 --rep 0
+python experiment/fqzero_test.py --dataname SSVEP --abs_saliency 1 --rep 1
+python experiment/fqae_test.py   --dataname ERN   --abs_saliency 1 --rep 0
+python experiment/fqroad_test.py --dataname SSVEP --abs_saliency 1 --rep 1
 
 # Time-segment masking
-python experiment/tszero_test.py --abs_saliency 1
-python experiment/tsae_test.py   --abs_saliency 1 --rep 0
-python experiment/tsroad_test.py --abs_saliency 1 --rep 0
+python experiment/tszero_test.py --dataname MI  --abs_saliency 1 --rep 0
+python experiment/tsae_test.py   --dataname MI  --abs_saliency 1 --rep 0
+python experiment/tsroad_test.py --dataname ERN --abs_saliency 1 --rep 0
 ```
+
+To run all 5 repeats for a single script:
+
+```bash
+for rep in 0 1 2 3 4; do
+  python experiment/chae_test.py --dataname ERN --abs_saliency 1 --rep $rep
+done
+```
+
+> **Note:** SSVEP data is available for repeats 1 and 2 only; pass `--rep 1` or `--rep 2` for SSVEP.
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `--abs_saliency 1` | Use absolute saliency values (`1` = yes, `0` = signed) |
-| `--rep N` | Repeat index 0–4 (used by ae / road scripts) |
+| Argument | Values | Description |
+|----------|--------|-------------|
+| `--dataname` | `MI` \| `ERN` \| `SSVEP` | Dataset to evaluate (required) |
+| `--abs_saliency` | `0` \| `1` | `1` = use absolute saliency values |
+| `--rep` | `0`–`4` | Repeat / seed index (required for all scripts) |
 
 ---
 
