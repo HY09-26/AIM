@@ -3,22 +3,15 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-import math
-import random
-import pickle#5 as pickle
-from scipy.io import loadmat, savemat
-import matplotlib.pyplot as plt
+import pickle
 from tqdm import tqdm
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torch.utils.data as Data
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("absbool", type=int)
-parser.add_argument("rep", type=int)
+parser.add_argument("--abs_saliency", type=int, choices=[0, 1], required=True, help="1 = absolute saliency")
+parser.add_argument("--rep", type=int, required=True, help="Repeat index (0-based)")
 args = parser.parse_args()
 
 
@@ -100,14 +93,14 @@ if __name__ == '__main__':
 
     leg = ['gradient', 'gradientxinput', 'smoothgrad', 'smoothgrad_sq', 'vargrad', 'inte_grad', 'random']
     for m in model_type.keys():
-        filler = '' if args.absbool ==1 else 'n'
+        filler = '' if args.abs_saliency ==1 else 'n'
         hists, hists1 = [], []
 
         if not os.path.exists(os.path.join(SAVE_DIR, f'repeat{rep}/ch_test_zero/{dataname}')):
             os.makedirs(os.path.join(SAVE_DIR, f'repeat{rep}/ch_test_zero/{dataname}'))
 
         for l in leg:
-            if args.absbool ==1 and l in ['smoothgrad_sq', 'vargrad']:
+            if args.abs_saliency ==1 and l in ['smoothgrad_sq', 'vargrad']:
                 continue
             testmodel = model_type[m](**kwerg)
 
@@ -152,7 +145,7 @@ if __name__ == '__main__':
                     grads = np.multiply(grads, xtest[-40:])
                     # grads = np.multiply(grads, xtest[-100:])
 
-                if args.absbool:
+                if args.abs_saliency:
                     grads = np.absolute(grads)
 
                 for k in range(1, xtest.shape[1]+1):
@@ -177,7 +170,7 @@ if __name__ == '__main__':
             hists.append(hist)
             hists1.append(hist1)
 
-        filler = '' if args.absbool ==1 else 'n'
+        filler = '' if args.abs_saliency ==1 else 'n'
 
         with open(os.path.join(SAVE_DIR, f'repeat{rep}/ch_test_zero/{dataname}/{m}_ch_{filler}abs_{modes[0][0]}rf.pickle'), 'wb') as handle:
             pickle.dump(hists, handle, protocol=pickle.HIGHEST_PROTOCOL)

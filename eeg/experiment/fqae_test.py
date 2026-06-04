@@ -1,25 +1,18 @@
 import numpy as np
+import sys
 import os
-import math
-import random
-import pickle#5 as pickle
-from scipy.io import loadmat, savemat
-import scipy.signal as signal
-import matplotlib.pyplot as plt
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import pickle
 from tqdm import tqdm
-# import mne
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torch.utils.data as Data
 
-from model import EEGNet, InterpretableCNN, SCCNet, EEGNet_SSVEP, InterpretableCNN_SSVEP
-from utils import train_an_epoch, evaluate_an_epoch, get_loader, getloader, evaluate_an_epoch_auc
+from experiment_utils.model import EEGNet, InterpretableCNN, SCCNet, EEGNet_SSVEP, InterpretableCNN_SSVEP
+from experiment_utils.utils import train_an_epoch, evaluate_an_epoch, get_loader, getloader, evaluate_an_epoch_auc
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("absbool", type=int)
+parser.add_argument("--abs_saliency", type=int, choices=[0, 1], required=True, help="1 = absolute saliency")
 args = parser.parse_args()
 
 
@@ -189,7 +182,7 @@ if __name__ == '__main__':
     model_type = {'eegnet': EEGNet, 'icnn': InterpretableCNN, 'sccnet':SCCNet}
     # model_type = {'eegnet': EEGNet_SSVEP, 'icnn': InterpretableCNN_SSVEP, 'sccnet':SCCNet}
     leg = ['gradient','gradientxinput', 'smoothgrad', 'smoothgrad_sq', 'vargrad', 'inte_grad','random']
-    filler = '' if args.absbool ==1 else 'n'
+    filler = '' if args.abs_saliency ==1 else 'n'
     
     
     for rep in range(5):
@@ -210,12 +203,12 @@ if __name__ == '__main__':
             
             for l in leg[:]:
                 
-                if args.absbool ==1 and l in ['smoothgrad_sq', 'vargrad',]:
+                if args.abs_saliency ==1 and l in ['smoothgrad_sq', 'vargrad',]:
                     continue
 
                 testmodel = model_type[m](**kwerg)
 
-                print('rep', rep, m, l, 'mode', args.absbool)
+                print('rep', rep, m, l, 'mode', args.abs_saliency)
                 # hist = dict(acc=np.zeros((9, 100)), loss=np.zeros((9,100)), out=np.zeros((9, 100, 288, 4)))
                 # hist1 = dict(acc=np.zeros((9, 100)), loss=np.zeros((9,100)), out=np.zeros((9, 100, 288, 4)))
                 hist =  dict(acc=np.zeros((16, 100)), loss=np.zeros((16,100)), out=np.zeros((16, 100, 40, 2)))
@@ -247,16 +240,16 @@ if __name__ == '__main__':
                     
                     ae = np.load(os.path.join(AE_DIR, f'{m}/sub{sub}.npy')).squeeze()
                     
-                    # loss, acc, out = freq_interp_test(testmodel, grads, xtest, ae, 32, ytest, sub, args.absbool, mode = modes[0], sfreq=125)
-                    loss, acc, out = freq_interp_test(testmodel, grads, xtest[-40:], ae, 32, ytest[-40:], sub, args.absbool, mode = modes[0], sfreq=128)
-                    # loss, acc, out = freq_interp_test(testmodel, grads, xtest[-100:], ae, 25, ytest[-100:], sub, args.absbool, mode = modes[0], sfreq=125)
+                    # loss, acc, out = freq_interp_test(testmodel, grads, xtest, ae, 32, ytest, sub, args.abs_saliency, mode = modes[0], sfreq=125)
+                    loss, acc, out = freq_interp_test(testmodel, grads, xtest[-40:], ae, 32, ytest[-40:], sub, args.abs_saliency, mode = modes[0], sfreq=128)
+                    # loss, acc, out = freq_interp_test(testmodel, grads, xtest[-100:], ae, 25, ytest[-100:], sub, args.abs_saliency, mode = modes[0], sfreq=125)
                     hist['acc' ][s] = acc
                     hist['loss'][s] = loss
                     hist['out' ][s] = out
 
-                    # loss, acc, out = freq_interp_test(testmodel, grads, xtest, ae, 32, ytest, sub, args.absbool, mode = modes[1], sfreq=125)
-                    loss, acc, out = freq_interp_test(testmodel, grads, xtest[-40:], ae, 32, ytest[-40:], sub, args.absbool, mode = modes[1], sfreq=128)
-                    # loss, acc, out = freq_interp_test(testmodel, grads, xtest[-100:], ae, 25, ytest[-100:], sub, args.absbool, mode = modes[1], sfreq=125)
+                    # loss, acc, out = freq_interp_test(testmodel, grads, xtest, ae, 32, ytest, sub, args.abs_saliency, mode = modes[1], sfreq=125)
+                    loss, acc, out = freq_interp_test(testmodel, grads, xtest[-40:], ae, 32, ytest[-40:], sub, args.abs_saliency, mode = modes[1], sfreq=128)
+                    # loss, acc, out = freq_interp_test(testmodel, grads, xtest[-100:], ae, 25, ytest[-100:], sub, args.abs_saliency, mode = modes[1], sfreq=125)
                     hist1['acc' ][s] = acc
                     hist1['loss'][s] = loss
                     hist1['out' ][s] = out

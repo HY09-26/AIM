@@ -1,27 +1,19 @@
 import numpy as np
+import sys
 import os
-import math
-import random
-import pickle#5 as pickle
-from scipy.io import loadmat, savemat
-from scipy.sparse import lil_matrix, csc_matrix
-from scipy.sparse.linalg import spsolve
-import matplotlib.pyplot as plt
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import pickle
 from tqdm import tqdm
-# import mne
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torch.utils.data as Data
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("absbool", type=int)
+parser.add_argument("--abs_saliency", type=int, choices=[0, 1], required=True, help="1 = absolute saliency")
 args = parser.parse_args()
 
-from model import EEGNet, InterpretableCNN, SCCNet, EEGNet_SSVEP, InterpretableCNN_SSVEP
-from utils import train_an_epoch, evaluate_an_epoch, get_loader, evaluate_an_epoch_auc
+from experiment_utils.model import EEGNet, InterpretableCNN, SCCNet, EEGNet_SSVEP, InterpretableCNN_SSVEP
+from experiment_utils.utils import train_an_epoch, evaluate_an_epoch, get_loader, evaluate_an_epoch_auc
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0" 
 
@@ -96,7 +88,7 @@ if __name__ == '__main__':
 
     
     leg = ['gradient', 'gradientxinput', 'smoothgrad', 'smoothgrad_sq', 'vargrad', 'inte_grad', 'random']
-    filler = '' if args.absbool ==1 else 'n'
+    filler = '' if args.abs_saliency ==1 else 'n'
 
     for rep in range(5):
         AE_DIR = f"/mnt/left/home/2023/irishsieh/atk/repeat{rep}/ae/{dataname}"
@@ -112,11 +104,11 @@ if __name__ == '__main__':
             
 
             for l in leg[:]:
-                if args.absbool ==1 and l in ['smoothgrad_sq', 'vargrad']:
+                if args.abs_saliency ==1 and l in ['smoothgrad_sq', 'vargrad']:
                     continue
                 testmodel = model_type[m](**kwerg)
 
-                print('rep', rep, m, l, args.absbool)
+                print('rep', rep, m, l, args.abs_saliency)
                 dim = 10
                 hist =  dict(acc=np.zeros((9, dim)), loss=np.zeros((9, dim)), out=np.zeros((9, dim, 288, 4)))
                 hist1 = dict(acc=np.zeros((9, dim)), loss=np.zeros((9, dim)), out=np.zeros((9, dim, 288, 4)))
@@ -148,7 +140,7 @@ if __name__ == '__main__':
                     
                     
                     for k in range(1,11):
-                        if args.absbool:
+                        if args.abs_saliency:
                             grads = np.absolute(grads)
                         max_idx, min_idx, wsize = find_crop(grads.mean(axis=0), np.round(k*0.05, 2))
 

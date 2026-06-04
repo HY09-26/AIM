@@ -212,7 +212,6 @@ if __name__ == "__main__":
         model.head.fc = nn.Linear(in_dim, num_classes)
 
     print("Loading checkpoint:", args.ckpt)
-    state_dict = torch.load(args.ckpt, map_location="cpu")
 
     model.load_state_dict(torch.load(args.ckpt, map_location=device))
 

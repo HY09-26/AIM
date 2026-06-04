@@ -1,32 +1,22 @@
 import numpy as np
+import sys
 import os
-import shutil
-import math
-import random
-import pickle#5 as pickle
-from scipy.io import loadmat, savemat
-from scipy.optimize import curve_fit
-from scipy.interpolate import interp1d
-import scipy.signal as signal
-import matplotlib.pyplot as plt
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import pickle
 from tqdm import tqdm
-# import mne
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torch.utils.data as Data
 
-from model import EEGNet, InterpretableCNN, SCCNet, EEGNet_SSVEP, InterpretableCNN_SSVEP
-from utils import train_an_epoch, evaluate_an_epoch, get_loader, getloader, evaluate_an_epoch_auc
+from experiment_utils.model import EEGNet, InterpretableCNN, SCCNet, EEGNet_SSVEP, InterpretableCNN_SSVEP
+from experiment_utils.utils import train_an_epoch, evaluate_an_epoch, get_loader, getloader, evaluate_an_epoch_auc
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("absbool", type=int)
+parser.add_argument("--abs_saliency", type=int, choices=[0, 1], required=True, help="1 = absolute saliency")
 args = parser.parse_args()
 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"# str(args.absbool)#"0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"# str(args.abs_saliency)#"0"
 
 # avoid precision error occurence conversion
 
@@ -253,7 +243,7 @@ if __name__ == '__main__':
     model_type = {'eegnet': EEGNet_SSVEP, 'icnn': InterpretableCNN_SSVEP, 'sccnet':SCCNet}
     
     leg = ['gradient', 'gradientxinput','smoothgrad', 'smoothgrad_sq', 'vargrad', 'inte_grad', 'random',  ]
-    filler = '' if args.absbool ==1 else 'n'
+    filler = '' if args.abs_saliency ==1 else 'n'
     for rep in range(1,3): # 0: 1,2 
         AE_DIR = f"/mnt/left/home/2023/irishsieh/atk/repeat{rep}/ae/{dataname}"
         EXPL_DIR = f"/mnt/left/home/2023/irishsieh/atk/repeat{rep}/expl/{dataname}"
@@ -273,7 +263,7 @@ if __name__ == '__main__':
 
 
             for l in leg[:]:
-                if args.absbool ==1 and l in ['smoothgrad_sq', 'vargrad']:
+                if args.abs_saliency ==1 and l in ['smoothgrad_sq', 'vargrad']:
                     continue
                     
                 testmodel = model_type[m](**kwerg)
@@ -307,7 +297,7 @@ if __name__ == '__main__':
                         grads = np.load(os.path.join(EXPL_DIR, f'{m}/sub{sub}_gradient.npy'), allow_pickle=True)
                         grads = np.multiply(grads, xtest)
 
-                    if args.absbool == 1:
+                    if args.abs_saliency == 1:
                         grads = np.absolute(grads, out = grads)
 
                     freqs = np.fft.fftfreq(grads.shape[-1], d = 1/sfreq)
@@ -321,20 +311,20 @@ if __name__ == '__main__':
                     for k in range(1,11): #tqdm(range(1,11)):
                     
                         # loss, acc, out = freq_interp_test(SPINT_DIR,testmodel, m, xtest, benign_fq, grad_fq, freqs, 19, 176, k*5, \
-                        #                                    32, ytest, sub, l, args.absbool,  mode = modes[0])
+                        #                                    32, ytest, sub, l, args.abs_saliency,  mode = modes[0])
                         # loss, acc, out = freq_interp_test(SPINT_DIR,testmodel, m, xtest, benign_fq, grad_fq, freqs, 1, 51, k*5,\
-                        #                                      32, ytest, sub, l, args.absbool, mode = modes[0])
+                        #                                      32, ytest, sub, l, args.abs_saliency, mode = modes[0])
                         loss, acc, out = freq_interp_test(SPINT_DIR, testmodel, m, xtest, benign_fq, grad_fq, freqs, 1,41, k*5,\
-                                                             25, ytest, sub, l, args.absbool, mode = modes[0])
+                                                             25, ytest, sub, l, args.abs_saliency, mode = modes[0])
                         hist['acc' ][s][k-1] = acc
                         hist['loss'][s][k-1] = loss
                         hist['out' ][s][k-1] = out
                         # loss, acc, out = freq_interp_test(SPINT_DIR,testmodel, m, xtest, benign_fq, grad_fq, freqs, 19, 176, k*5,\
-                        #                                     32, ytest, sub, l, args.absbool, mode = modes[1])
+                        #                                     32, ytest, sub, l, args.abs_saliency, mode = modes[1])
                         # loss, acc, out = freq_interp_test(SPINT_DIR,testmodel, m, xtest, benign_fq, grad_fq, freqs, 1, 51, k*5,
-                        #                                      32, ytest, sub, l, args.absbool, mode = modes[1])
+                        #                                      32, ytest, sub, l, args.abs_saliency, mode = modes[1])
                         loss, acc, out = freq_interp_test(SPINT_DIR, testmodel, m, xtest, benign_fq, grad_fq, freqs, 1,41, k*5,\
-                                                             25, ytest, sub, l, args.absbool, mode = modes[1])
+                                                             25, ytest, sub, l, args.abs_saliency, mode = modes[1])
                         hist1['acc' ][s][k-1] = acc
                         hist1['loss'][s][k-1] = loss
                         hist1['out' ][s][k-1] = out

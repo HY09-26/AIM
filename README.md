@@ -235,7 +235,7 @@ pip install -r requirements.txt
 
 **MoRF/LeRF evaluation:**
 ```bash
-python experiment/test_image.py \
+python experiment/test_brainmri.py \
   --dataset oxford_pet \        # brain_mri | imagenet | oxford_pet
   --model resnet_50 \           # resnet_50 | efficientnet_b0 | repvgg_b0
   --mask_type pgd \             # zero | pgd | road
@@ -339,6 +339,114 @@ timm
 
 ---
 
+
+
+
+---
+
+## EEG Experiments
+
+### Datasets
+
+| Dataset | Classes | Task | Subjects |
+|---|---|---|---|
+| [MI (BCI Competition IV 2a)](https://www.bbci.de/competition/iv/) | 4 | Motor imagery | 9 |
+| [ERN (BNCI Horizon P300)](https://bnci-horizon-2020.eu/) | 2 | Error-related negativity detection | 16 |
+| [SSVEP (MAMEM)](https://www.mamem.eu/results/datasets/) | 5 | Steady-state visual evoked potential | 11 |
+
+All datasets are loaded as subject-specific `.mat` files. Results are averaged across subjects and 5 repeat runs.
+
+### Models
+
+| Model | Architecture |
+|---|---|
+| **EEGNet** | Compact depthwise separable CNN |
+| **InterpretableCNN (iCNN)** | Temporally-interpretable CNN |
+| **SCCNet** | Spatial-component-wise CNN |
+
+For SSVEP, frequency-adapted variants (`EEGNet_SSVEP`, `InterpretableCNN_SSVEP`) are used.
+
+### Attribution Methods
+
+| Method | Code |
+|---|---|
+| Gradient | `gradient` |
+| Gradient × Input | `gradientxinput` |
+| SmoothGrad | `smoothgrad` |
+| SmoothGrad² | `smoothgrad_sq` |
+| VarGrad | `vargrad` |
+| Integrated Gradients | `inte_grad` |
+| Random | `random` |
+
+### EEG Masking Strategies
+
+EEG signals are evaluated along three axes (channel / frequency / time-segment), each with three masking variants:
+
+| Axis | Zero | Adversarial (AE) | ROAD imputation |
+|---|---|---|---|
+| **Channel** | `chzero_test.py` | `chae_test.py` | `chroad_test.py` |
+| **Frequency** | `fqzero_test.py` | `fqae_test.py` | `fqroad_test.py` |
+| **Time-segment** | `tszero_test.py` | `tsae_test.py` | `tsroad_test.py` |
+
+- **Zero** — replace masked region with zeros
+- **AE** — replace with PGD adversarial examples
+- **ROAD** — replace with in-distribution imputed signal (spatial interpolation or MFBB noise)
+
+### Path Configuration
+
+At the top of each EEG script, set the two path constants before running:
+
+```python
+# ===== PATH CONFIGURATION =====
+IRISHSIEH_DIR = "/path/to/pretrained_models_and_explanations"
+SAVE_DIR      = "/path/to/output_directory"
+```
+
+Also set `dataname` (`'MI'`, `'ERN'`, or `'SSVEP'`) to select the active dataset.
+
+### Running EEG Experiments
+
+```bash
+cd eeg
+
+# Channel masking — zero replacement
+python experiment/chzero_test.py --abs_saliency 1
+
+# Channel masking — adversarial examples
+python experiment/chae_test.py --abs_saliency 1 --rep 0
+
+# Channel masking — ROAD spatial imputation
+python experiment/chroad_test.py --abs_saliency 1 --rep 0
+
+# Frequency masking — zero
+python experiment/fqzero_test.py --abs_saliency 1
+
+# Time-segment masking — zero
+python experiment/tszero_test.py --abs_saliency 1
+```
+
+**Arguments:**
+
+| Argument | Description |
+|---|---|
+| `--abs_saliency 1` | Use absolute saliency values (`1` = yes, `0` = signed) |
+| `--rep N` | Repeat run index 0–4 (required for ae / road scripts) |
+
+### EEG Data and Model Setup
+
+```
+<IRISHSIEH_DIR>/
+├── models/<DATASET>/bests_repeat<N>/
+│   └── sub<S>-<model>.pth
+└── repeat<N>/
+    ├── ae/<DATASET>/<model>/sub<S>.npy        # adversarial examples
+    └── expl/<DATASET>/<model>/sub<S>_<method>.npy
+
+Raw .mat files (per-subject):
+  MI:    BCIC_S<NN>_E.mat
+  ERN:   Data_S<NN>_Sess.mat
+  SSVEP: U0<NN>.mat
+```
 
 ## Acknowledgements
 

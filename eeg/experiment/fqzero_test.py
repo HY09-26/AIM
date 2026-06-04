@@ -3,8 +3,6 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-import math
-import random
 import pickle
 from scipy.io import loadmat
 from tqdm import tqdm
@@ -13,7 +11,7 @@ import torch.nn as nn
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("absbool", type=int)
+parser.add_argument("--abs_saliency", type=int, choices=[0, 1], required=True, help="1 = absolute saliency")
 args = parser.parse_args()
 
 from experiment_utils.model import EEGNet, InterpretableCNN, SCCNet, EEGNet_SSVEP, InterpretableCNN_SSVEP
@@ -170,7 +168,7 @@ def freq_zero_test(model, modelname, benign, benign_fq, grad_fq, f,
     for t in range(tr):
         cid, nb, _ = find_neighbors(benign_fq[t, :, 1:uq_freqs],
                                     abs(grad_fq[t, :, 1:uq_freqs]),
-                                    k * 0.01, args.absbool, mode[0])
+                                    k * 0.01, args.abs_saliency, mode[0])
         # zero out positive-frequency band
         mixture_fq[t, :, nb[0]:nb[1]+1] = 0
         # zero out symmetric negative-frequency band
@@ -194,7 +192,7 @@ if __name__ == '__main__':
         model_type = {'eegnet': EEGNet, 'icnn': InterpretableCNN, 'sccnet': SCCNet}
 
     leg    = ['gradient', 'gradientxinput', 'smoothgrad', 'smoothgrad_sq', 'vargrad', 'inte_grad', 'random']
-    filler = '' if args.absbool == 1 else 'n'
+    filler = '' if args.abs_saliency == 1 else 'n'
 
     for rep in range(1):
         EXPL_DIR = f"{IRISHSIEH_DIR}/repeat{rep}/expl/{dataname}"
@@ -204,7 +202,7 @@ if __name__ == '__main__':
             hists, hists1 = [], []
 
             for l in leg:
-                if args.absbool == 1 and l in ['smoothgrad_sq', 'vargrad']:
+                if args.abs_saliency == 1 and l in ['smoothgrad_sq', 'vargrad']:
                     continue
                 testmodel = model_type[m](**kwerg)
                 print('rep', rep, m, l)
@@ -239,7 +237,7 @@ if __name__ == '__main__':
                                         allow_pickle=True)
                         grads = np.multiply(grads, xtest_full[gradxi_sl])
 
-                    if args.absbool == 1:
+                    if args.abs_saliency == 1:
                         grads = np.absolute(grads, out=grads)
 
                     freqs     = np.fft.fftfreq(xtest.shape[-1], d=1/sfreq)

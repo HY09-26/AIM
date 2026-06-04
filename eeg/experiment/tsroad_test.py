@@ -1,25 +1,22 @@
 import numpy as np
+import sys
 import os
-import shutil
-import math
-import random
-import pickle#5 as pickle
-from scipy.io import loadmat, savemat
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import pickle
 from tqdm import tqdm
 import mne
 import torch
 import torch.nn as nn
-import torch.optim as optim
 
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("absbool", type=int)
+parser.add_argument("--abs_saliency", type=int, choices=[0, 1], required=True, help="1 = absolute saliency")
 args = parser.parse_args()
 
-from model import EEGNet, InterpretableCNN, SCCNet, EEGNet_SSVEP, InterpretableCNN_SSVEP
-from utils import train_an_epoch, evaluate_an_epoch, get_loader, evaluate_an_epoch_auc
-from mfbb import MFBB, fit_hurst
+from experiment_utils.model import EEGNet, InterpretableCNN, SCCNet, EEGNet_SSVEP, InterpretableCNN_SSVEP
+from experiment_utils.utils import train_an_epoch, evaluate_an_epoch, get_loader, evaluate_an_epoch_auc
+from experiment_utils.mfbb import MFBB, fit_hurst
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] ="0"
@@ -166,7 +163,7 @@ if __name__ == '__main__':
 
     
     leg = ['gradient', 'gradientxinput', 'smoothgrad', 'smoothgrad_sq', 'vargrad', 'inte_grad', 'random']
-    filler = '' if args.absbool ==1 else 'n'
+    filler = '' if args.abs_saliency ==1 else 'n'
 
     for rep in range(5):
         EXPL_DIR = f"/mnt/left/home/2023/irishsieh/atk/repeat{rep}/expl/{dataname}"
@@ -186,11 +183,11 @@ if __name__ == '__main__':
             hists, hists1 = [], []
 
             for l in leg[:]:
-                if args.absbool ==1 and l in ['smoothgrad_sq', 'vargrad']:
+                if args.abs_saliency ==1 and l in ['smoothgrad_sq', 'vargrad']:
                     continue
                 testmodel = model_type[m](**kwerg)
 
-                print('rep', rep, m, l, args.absbool)
+                print('rep', rep, m, l, args.abs_saliency)
 
                 dim = 11
                 # hist =  dict(acc=np.zeros((9, dim)), loss=np.zeros((9, dim)), out=np.zeros((9, dim, 288, 4)))
@@ -219,7 +216,7 @@ if __name__ == '__main__':
                         grads = np.load(os.path.join(EXPL_DIR, f'{m}/sub{sub}_gradient.npy'), allow_pickle=True)
                         grads = np.multiply(grads, xtest[-40:])
 
-                    if args.absbool ==1:
+                    if args.abs_saliency ==1:
                         grads = np.absolute(grads, out=grads)
 
                     hursts = np.zeros((xtest.shape[0], xtest.shape[1]))
