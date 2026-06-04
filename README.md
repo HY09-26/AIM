@@ -14,9 +14,9 @@ AIM/
 ├── image/                          # Image modality
 │   ├── experiment/
 │   │   ├── test_image.py           # MoRF/LeRF on Brain Tumor MRI / ImageNet / Oxford-IIIT Pet
-│   │   ├── area.py                 # Compute AOC / ABC / AUC
-│   │   ├── spearman.py             # MoRF–LeRF Spearman correlation
-│   │   └── plot_morf_lerf.py       # Plot MoRF/LeRF curves
+│   │   ├── area.py                 # Compute AOC / ABC / AUC (→ analysis/area.py)
+│   │   ├── spearman.py             # MoRF–LeRF Spearman ρ (→ analysis/spearman.py)
+│   │   └── plot_morf_lerf.py       # Plot MoRF/LeRF curves (→ analysis/plot_morf_lerf.py)
 │   └── experiment_utils/
 │       ├── model.py                # ResNet-50, EfficientNet-B0, RepVGG-B0
 │       ├── utils.py                # PGD attack, ROAD masking, helpers
@@ -27,14 +27,19 @@ AIM/
 │   │   ├── test_waveform.py        # MoRF/LeRF on 1-D waveforms (rank-based)
 │   │   ├── test_waveform_interval.py  # MoRF/LeRF on 1-D waveforms (interval-based)
 │   │   ├── test_spectrogram.py     # MoRF/LeRF on 2-D spectrogram / log-mel
-│   │   ├── area.py                 # Compute AOC / ABC / AUC
-│   │   ├── spearman.py             # MoRF–LeRF Spearman correlation
-│   │   └── plot_morf_lerf.py       # Plot MoRF/LeRF curves
+│   │   ├── area.py                 # Compute AOC / ABC / AUC (→ analysis/area.py)
+│   │   ├── spearman.py             # MoRF–LeRF Spearman ρ (→ analysis/spearman.py)
+│   │   └── plot_morf_lerf.py       # Plot MoRF/LeRF curves (→ analysis/plot_morf_lerf.py)
 │   └── experiment_utils/
 │       ├── model/                  # AudioNet, Res1dNet31, AlexNet_Audio, CNN14, ...
 │       ├── utils.py                # PGD attack, ROAD/MFBB masking, loaders
 │       ├── mfbb.py                 # Multipoint Fractional Brownian Bridge
 │       └── train_audio.py          # Unified training (AudioMNIST / ESC-50 / MSoS)
+│
+├── analysis/                       # Unified cross-domain analysis scripts
+│   ├── area.py                     # AOC / ABC / AUC (image + audio + EEG)
+│   ├── spearman.py                 # MoRF–LeRF Spearman ρ (image + audio + EEG)
+│   └── plot_morf_lerf.py           # MoRF/LeRF curve plots (image + audio)
 │
 └── eeg/                            # EEG modality
     ├── experiment/
@@ -56,10 +61,10 @@ AIM/
     │   ├── mfbb.py                 # Multipoint Fractional Brownian Bridge
     │   └── model_train.py          # Training pipeline
     └── result_process/             # Result aggregation and visualization
-        ├── result_areas.py         # AOC / ABC / AUC computation
-        ├── result_spears.py        # Spearman consistency analysis
+        ├── result_areas.py         # AOC / ABC / AUC (→ analysis/area.py)
+        ├── result_spears.py        # Spearman consistency (→ analysis/spearman.py)
         ├── result_grid.py          # Grid-format result tables
-        └── plot.py                 # Plotting utilities
+        └── plot.py                 # Saliency-map visualisation (topomaps, heatmaps)
 ```
 
 ---
@@ -169,19 +174,20 @@ python experiment/test_image.py --dataset brain_mri  --model resnet_50       --e
 python experiment/test_image.py --dataset imagenet   --model efficientnet_b0 --expl_method smoothgradcampp --mask_type road
 python experiment/test_image.py --dataset oxford_pet --model repvgg_b0       --expl_method gradcampp       --mask_type pgd
 
-# Compute AOC / ABC / AUC
-python experiment/area.py \
-  --root image/ \
-  --datasets brain_mri imagenet oxford_pet \
-  --models resnet_50 efficientnet_b0 repvgg_b0 \
-  --masks zero pgd road
+# Compute AOC / ABC / AUC (run from project root)
+python analysis/area.py --domain image
+python analysis/area.py --domain image --dataset brain_mri --mask pgd
 
-# MoRF–LeRF Spearman consistency
-python experiment/spearman.py \
-  --root image/ \
-  --datasets brain_mri imagenet oxford_pet \
-  --models resnet_50 efficientnet_b0 repvgg_b0 \
-  --masks zero pgd road
+# MoRF–LeRF Spearman consistency (run from project root)
+python analysis/spearman.py --domain image
+
+# Plot MoRF/LeRF curves (run from project root)
+python analysis/plot_morf_lerf.py --domain image
+
+# All three also work via the original per-domain paths:
+python image/experiment/area.py
+python image/experiment/spearman.py
+python image/experiment/plot_morf_lerf.py
 ```
 
 ### Audio
@@ -212,19 +218,20 @@ python experiment/test_spectrogram.py \
   --mask_type pgd \
   --expl_method gradcam
 
-# Compute AOC / ABC / AUC
-python experiment/area.py \
-  --root audio/ \
-  --datasets audiomnist esc50 msos \
-  --models audionet res1dnet31 alexnet cnn14 \
-  --masks zero pgd road
+# Compute AOC / ABC / AUC (run from project root)
+python analysis/area.py --domain audio
+python analysis/area.py --domain audio --dataset esc50 --model cnn14
 
-# MoRF–LeRF Spearman consistency
-python experiment/spearman.py \
-  --root audio/ \
-  --datasets audiomnist esc50 msos \
-  --models audionet res1dnet31 alexnet cnn14 \
-  --masks zero pgd road
+# MoRF–LeRF Spearman consistency (run from project root)
+python analysis/spearman.py --domain audio
+
+# Plot MoRF/LeRF curves (run from project root)
+python analysis/plot_morf_lerf.py --domain audio
+
+# All three also work via the original per-domain paths:
+python audio/experiment/area.py
+python audio/experiment/spearman.py
+python audio/experiment/plot_morf_lerf.py
 ```
 
 ### EEG
