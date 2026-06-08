@@ -25,6 +25,7 @@ Audio / EEG — unnormalised with chance clipping:
 """
 
 from __future__ import annotations
+import sys
 
 import argparse
 import glob
@@ -160,7 +161,7 @@ _IMG_METRIC_ORDER = ["AOC", "ABC", "AUC"]
 
 
 def _run_image(args: argparse.Namespace) -> None:
-    root = args.root or os.path.join(PROJECT_ROOT, "morf_lerf_image")
+    root = args.root or os.path.join(PROJECT_ROOT, "image", "morf_lerf_image")
     datasets = _IMG_DATASETS if args.dataset == "all" else [args.dataset]
     models   = _IMG_MODELS   if args.model   == "all" else [args.model]
     masks    = _IMG_MASKS    if args.mask    == "all" else [args.mask]
@@ -340,6 +341,11 @@ _LEG_ALL  = _LEG_NABS + _LEG_ABS + ["RD"]
 
 
 def _run_eeg(args: argparse.Namespace) -> None:
+    if sys.version_info < (3, 8):
+        print("[ERROR] EEG domain requires Python >= 3.8"
+              " (EEG .pickle files use protocol 5). "
+              "Use: /opt/anaconda3/envs/DLP2024/bin/python")
+        sys.exit(1)
     base     = args.root or _EEG_BASE_DIR
     datasets = _EEG_DATASETS if args.dataset    == "all" else [args.dataset]
     models   = _EEG_MODELS   if args.model      == "all" else [args.model]

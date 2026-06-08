@@ -40,6 +40,14 @@ logger = logging.getLogger(__name__)
 ANALYSIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(ANALYSIS_DIR)
 
+
+class _CompatUnpickler(pickle.Unpickler):
+    """Remap numpy._core → numpy.core for cross-version compatibility."""
+    def find_class(self, module, name):
+        if module.startswith("numpy._core"):
+            module = module.replace("numpy._core", "numpy.core")
+        return super().find_class(module, name)
+
 # Attribution methods whose curves are shown with a dashed line (audio only).
 # These are the non-absolute-value variants, which tend to produce weaker
 # attributions than their |·| counterparts.
@@ -54,7 +62,7 @@ _NON_ABS_METHODS = {
 
 def _load_curve(path: str) -> np.ndarray:
     with open(path, "rb") as f:
-        return np.asarray(pickle.load(f), dtype=float)
+        return np.asarray(_CompatUnpickler(f).load(), dtype=float)
 
 
 def _pct_masked(n_steps: int) -> np.ndarray:
@@ -176,7 +184,7 @@ _AUD_MASKS    = ["zero", "pgd", "road"]
 
 
 def _run_image(args: argparse.Namespace) -> None:
-    root     = args.root or os.path.join(PROJECT_ROOT, "morf_lerf_image")
+    root     = args.root or os.path.join(PROJECT_ROOT, "image", "morf_lerf_image")
     datasets = args.datasets if args.datasets else _IMG_DATASETS
     models   = args.models   if args.models   else _IMG_MODELS
     masks    = args.masks    if args.masks    else _IMG_MASKS
